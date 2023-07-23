@@ -1,9 +1,10 @@
 <!-- PROJECT LOGO -->
-<br />
+<!---
 <div align="center">
   <a href="https://github.com/Mihir-A/Chess-AI">
     <img src="images/logo.png" alt="Logo" width="60" height="60">
   </a>
+-->
 
 <h3 align="center">Doodle Guesser</h3>
 
@@ -13,7 +14,7 @@
 </div>
 
 <div align="center">
-  <img src="images/ss1" alt="Screenshot" width="512" height="540">
+  <img src="images/ss1.png" alt="Screenshot" >
 </div>
 
 
@@ -59,7 +60,7 @@
 
 ## Screenshots
 <p float="left">
-  <img src="images/ss2.png" alt="Screenshot" width="256" height="270">
+  <img src="images/ss2.png" alt="Screenshot" >
 </p>
 
 
