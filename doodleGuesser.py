@@ -1,11 +1,9 @@
-import time
-
-
-from threading import Thread, Event
-import pygame, random, os, sys
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
+from threading import Thread
+import pygame, sys, time
 import numpy as np
-
-
 
 class_names = []
 class_guessed = []
@@ -17,8 +15,11 @@ GREEN = (0, 255, 0)
 
 NUMSQUARES = 28
 SQUAREWIDTH = 20
+MAXFPS = 60
 
 font = None
+start_time = time.time()
+end_time = time.time()
 
 def main():
 
@@ -37,7 +38,7 @@ def main():
      grid = np.zeros((NUMSQUARES, NUMSQUARES), dtype=int)
 
 
-     model = load(screen)
+     model = load_screen(screen)
      with open('data/labels.lbl', 'r') as file:
           for line in file:
                class_names.append(line.strip())
@@ -50,15 +51,19 @@ def main():
      probability = 0
      guess = 0
 
+     global start_time
+     start_time = time.time()
+
      while running:
-          
+          pygame.time.Clock().tick(MAXFPS)
           for event in pygame.event.get():
+
                if event.type == pygame.QUIT:
                     running = False
                     return
                
                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    x, y = convertClickToIndex(pygame.mouse.get_pos(), SQUAREWIDTH)
+                    x, y = click_to_idx(pygame.mouse.get_pos(), SQUAREWIDTH)
                     if x >= 0 and x < NUMSQUARES and y >= 0 and y < NUMSQUARES:
                          md = True
                          down = not grid[y][x]
@@ -70,12 +75,11 @@ def main():
                     verify(guess, probability)
 
                if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                    clearGrid(grid)
+                    clear_grid(grid)
                     centered = center(grid)
                     guess, probability = predict(centered, model)
                     
-
-          x, y = convertClickToIndex(pygame.mouse.get_pos(), SQUAREWIDTH)
+          x, y = click_to_idx(pygame.mouse.get_pos(), SQUAREWIDTH)
           if md and x >= 0 and x < NUMSQUARES and y >= 0 and y < NUMSQUARES:
                try:
                     grid[y][x] = down
@@ -86,34 +90,11 @@ def main():
                     pass
 
           screen.fill(WHITE)
-          drawGrid(screen, NUMSQUARES, SQUAREWIDTH, grid)
-          drawText(screen, guess, probability)
+          draw_grid(screen, NUMSQUARES, SQUAREWIDTH, grid)
+          draw_text(screen, guess, probability)
           pygame.display.flip()
 
-def load(screen):
-     modela = [None]
-     loading_thread = Thread(target=loading, args=(modela,))
-     loading_thread.start()
-
-     while loading_thread.is_alive():
-          for event in pygame.event.get():
-               if event.type == pygame.QUIT:
-                    exit(0)
-
-          screen.fill(WHITE)
-          text_surface = font.render("Loading Model...", True, BLACK)
-          text_rect = text_surface.get_rect(center=(NUMSQUARES * SQUAREWIDTH, ((NUMSQUARES + 2) * SQUAREWIDTH) / 2))
-
-          screen.blit(text_surface, text_rect)
-          pygame.display.flip()
-     return modela[0]
-
-def loading(model):
-     from keras.models import load_model
-     model[0] = load_model('doodleModel.h5')
-    
-
-def drawGrid(screen, numSqaures, width, grid):
+def draw_grid(screen, numSqaures, width, grid):
      for x in range(0, numSqaures):
           for y in range(0, numSqaures):
                if grid[y][x] == True:
@@ -121,7 +102,7 @@ def drawGrid(screen, numSqaures, width, grid):
                else:
                     pygame.draw.rect(screen, BLACK, (x * width, y * width, width, width), width=1)
 
-def convertClickToIndex(point, width):
+def click_to_idx(point, width):
      return (int(point[0] / width), int(point[1] / width))
 
 def predict(grid, model):
@@ -158,7 +139,7 @@ def center(list):
                     pass
      return new
 
-def drawText(screen, guess, probability):
+def draw_text(screen, guess, probability):
      draw_info_text(screen, font)
      
      if probability > 0.75:
@@ -198,12 +179,37 @@ def draw_info_text(screen, font):
           screen.blit(text_surface, (565, y))
           y += int(font.get_linesize() * 1)
 
-def clearGrid(grid):
+     end_time = end_time if all(class_guessed) else time.time()
+     text_surface = font.render("Time: " + str(round(end_time - start_time, 1)), True, BLACK)
+     screen.blit(text_surface, (565, y))
+
+
+def clear_grid(grid):
      for x in range(0, len(grid)):
           for y in range(0, len(grid)):
                grid[y][x] = False
 
+def load_screen(screen):
+     modela = [None]
+     loading_thread = Thread(target=load_model, args=(modela,))
+     loading_thread.start()
 
+     while loading_thread.is_alive():
+          for event in pygame.event.get():
+               if event.type == pygame.QUIT:
+                    exit(0)
+
+          screen.fill(WHITE)
+          text_surface = font.render("Loading Model...", True, BLACK)
+          text_rect = text_surface.get_rect(center=(NUMSQUARES * SQUAREWIDTH, ((NUMSQUARES + 2) * SQUAREWIDTH) / 2))
+
+          screen.blit(text_surface, text_rect)
+          pygame.display.flip()
+     return modela[0]
+
+def load_model(model):
+     from keras.models import load_model
+     model[0] = load_model('doodleModel.h5')
 
 if __name__ == '__main__':
     main()
