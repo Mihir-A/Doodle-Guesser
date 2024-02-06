@@ -49,7 +49,7 @@
    ```
 3. Install necessary libs
    ```sh
-   python3 -m pip install tensorflow numpy pygame
+   python3 -m pip install -r requirements.txt
    ```
 4. Download more class data from [Google Quickdraw](https://console.cloud.google.com/storage/browser/quickdraw_dataset/full/numpy_bitmap) if desired
 5. Use modelCreator.ipynb to create a new model. Required if new classes have been added.
