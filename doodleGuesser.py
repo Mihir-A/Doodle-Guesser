@@ -179,6 +179,7 @@ def draw_info_text(screen, font):
           screen.blit(text_surface, (565, y))
           y += int(font.get_linesize() * 1)
 
+     global end_time
      end_time = end_time if all(class_guessed) else time.time()
      text_surface = font.render("Time: " + str(round(end_time - start_time, 1)), True, BLACK)
      screen.blit(text_surface, (565, y))
